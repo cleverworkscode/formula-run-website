@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0D0D0D;
+  --surface: #15151E;
+  --surface-elev: #1A1A2E;
+  --surface-light: #2A2A3E;
+  --line: rgba(255, 255, 255, 0.06);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --fg: #FAFAFA;
+  --muted: #6E6E76;
+  --lime: #D6FF8B;
+  --lime-dim: #8FAD58;
+  --red: #FF2D2D;
+  --gold: #FFD700;
+  --silver: #C0C0C0;
+  --bronze: #CD7F32;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-elev: var(--surface-elev);
+  --color-surface-light: var(--surface-light);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-lime: var(--lime);
+  --color-lime-dim: var(--lime-dim);
+  --color-red: var(--red);
+  --color-gold: var(--gold);
+  --color-silver: var(--silver);
+  --color-bronze: var(--bronze);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* { -webkit-font-smoothing: antialiased; }
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--lime);
+  color: #000;
+}
+
+/* Grain overlay — atmospheric noise */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  mix-blend-mode: overlay;
+}
+
+/* Geometric grid background for hero */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(214, 255, 139, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(214, 255, 139, 0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+  background-position: -1px -1px;
+}
+
+/* Marquee ticker */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee 60s linear infinite;
+}
+
+/* Start lights */
+.light {
+  width: 36px;
+  height: 52px;
+  background: #1A0606;
+  border: 1px solid rgba(255, 45, 45, 0.18);
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.25s ease;
+}
+.light::before,
+.light::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: #2A0606;
+  transition: all 0.25s ease;
+}
+.light::before { top: 10px; }
+.light::after { bottom: 10px; }
+.light.on {
+  background: #2A0808;
+  border-color: rgba(255, 45, 45, 0.7);
+  box-shadow: 0 0 24px rgba(255, 45, 45, 0.4), 0 0 60px rgba(255, 45, 45, 0.15);
+}
+.light.on::before,
+.light.on::after {
+  background: #FF2D2D;
+  box-shadow: 0 0 12px #FF2D2D, 0 0 24px rgba(255, 45, 45, 0.6);
+}
+
+/* Hero text entrance */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.rise { animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.glow-pulse { animation: glow-pulse 2.2s ease-in-out infinite; }
+
+/* Sector lines (decorative) */
+.sector-line {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--lime) 30%,
+    var(--lime) 70%,
+    transparent 100%
+  );
+  opacity: 0.4;
+}
+
+/* Hover micro for cards */
+.card-hover {
+  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+              border-color 0.3s ease,
+              background 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(214, 255, 139, 0.3);
+}
+
+/* Number tick-up effect */
+@keyframes tick {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.tick { animation: tick 0.5s ease-out both; }
+
+/* Diagonal stripe pattern (race-flag inspired) */
+.stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 8px,
+    rgba(214, 255, 139, 0.06) 8px,
+    rgba(214, 255, 139, 0.06) 16px
+  );
+}
