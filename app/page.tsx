@@ -1,6 +1,7 @@
 import { StartLights } from "./components/StartLights";
 import { Countdown } from "./components/Countdown";
 import { getNextRace, type Race } from "../lib/data";
+import { getDiagnostic } from "../lib/firebase-admin";
 
 const APP_STORE_URL =
   "https://apps.apple.com/us/app/formula-run/id6758935487";
@@ -8,16 +9,17 @@ const APP_STORE_URL =
 export const revalidate = 300;
 
 export default async function Home() {
-  const { next, total } = await getNextRace().catch((e) => {
-    console.error("[home] getNextRace failed:", e?.code, e?.message, {
-      hasInline: !!process.env.FIREBASE_SERVICE_ACCOUNT,
-      hasAdc: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    });
+  let fetchError: string | null = null;
+  const { next, total } = await getNextRace().catch((e: Error & { code?: number }) => {
+    fetchError = `${e?.code ?? ""}:${e?.message?.slice(0, 160) ?? ""}`;
+    console.error("[home] getNextRace failed:", e?.code, e?.message);
     return { next: null, total: 24 };
   });
+  const diag = getDiagnostic();
 
   return (
     <>
+      <DebugBreadcrumb diag={diag} fetchError={fetchError} hasNext={!!next} />
       <StatusBar nextRace={next} totalRounds={total} />
       <main className="flex flex-1 flex-col">
         <Hero nextRace={next} />
@@ -30,6 +32,19 @@ export default async function Home() {
       </main>
     </>
   );
+}
+
+function DebugBreadcrumb({
+  diag,
+  fetchError,
+  hasNext,
+}: {
+  diag: { mode: string; ok: boolean; error?: string };
+  fetchError: string | null;
+  hasNext: boolean;
+}) {
+  const blob = `FR-DEBUG mode=${diag.mode} ok=${diag.ok} err=${diag.error ?? "-"} fetchErr=${fetchError ?? "-"} hasNext=${hasNext}`;
+  return <div data-fr-debug={blob} style={{ display: "none" }} />;
 }
 
 function shortName(race: Race | null): string {
