@@ -1,15 +1,23 @@
 import { StartLights } from "./components/StartLights";
 import { Countdown } from "./components/Countdown";
+import { getNextRace, type Race } from "../lib/data";
 
 const APP_STORE_URL =
   "https://apps.apple.com/us/app/formula-run/id6758935487";
 
-export default function Home() {
+export const revalidate = 300;
+
+export default async function Home() {
+  const { next, total } = await getNextRace().catch(() => ({
+    next: null,
+    total: 24,
+  }));
+
   return (
     <>
-      <StatusBar />
+      <StatusBar nextRace={next} totalRounds={total} />
       <main className="flex flex-1 flex-col">
-        <Hero />
+        <Hero nextRace={next} />
         <Ticker />
         <Sectors />
         <Standings />
@@ -21,9 +29,33 @@ export default function Home() {
   );
 }
 
+function shortName(race: Race | null): string {
+  if (!race) return "NEXT GP";
+  const root = (race.trackName || race.name).split(" ")[0];
+  return `${root.toUpperCase()} GP`;
+}
+
+function raceDate(race: Race | null): string {
+  if (!race) return "--.--";
+  const m = race.month.toString().padStart(2, "0");
+  const d = race.day.toString().padStart(2, "0");
+  return `${d}.${m}`;
+}
+
+function raceDistance(race: Race | null): string {
+  if (!race || !race.distanceKm) return "";
+  return `${race.distanceKm.toFixed(2)} KM`;
+}
+
 /* -------------------- STATUS BAR -------------------- */
 
-function StatusBar() {
+function StatusBar({
+  nextRace,
+  totalRounds,
+}: {
+  nextRace: Race | null;
+  totalRounds: number;
+}) {
   return (
     <div className="sticky top-0 z-40 backdrop-blur-md bg-[rgba(13,13,13,0.7)] border-b border-line">
       <div className="max-w-[1400px] mx-auto px-6 h-9 flex items-center justify-between font-mono text-[10px] tracking-[0.2em] text-muted">
@@ -32,12 +64,14 @@ function StatusBar() {
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-red glow-pulse" />
             <span className="text-red">LIVE</span>
           </span>
-          <span className="hidden sm:inline">RD.11 / 24</span>
-          <span className="hidden md:inline">NORTHAMPTON GP</span>
+          <span className="hidden sm:inline">
+            RD.{nextRace?.round ?? "--"} / {totalRounds}
+          </span>
+          <span className="hidden md:inline">{shortName(nextRace)}</span>
         </div>
         <div className="flex items-center gap-5">
           <span className="hidden sm:inline">
-            LIGHTS OUT IN <Countdown compact />
+            LIGHTS OUT IN <Countdown compact targetIso={nextRace?.date.toISOString()} />
           </span>
           <span className="text-lime">FORMULA RUN</span>
         </div>
@@ -48,7 +82,7 @@ function StatusBar() {
 
 /* -------------------- HERO -------------------- */
 
-function Hero() {
+function Hero({ nextRace }: { nextRace: Race | null }) {
   return (
     <section className="relative overflow-hidden hero-grid">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_20%_30%,rgba(214,255,139,0.08),transparent_60%)]" />
@@ -123,14 +157,16 @@ function Hero() {
                 NEXT ROUND / OFFICIAL TIMING
               </div>
               <div className="mb-8">
-                <div className="text-2xl font-semibold mb-1">
-                  Northampton Grand Pursuit
+                <div className="text-2xl font-semibold mb-1 flex items-center gap-2">
+                  {nextRace?.flagEmoji && <span>{nextRace.flagEmoji}</span>}
+                  <span>{nextRace?.name ?? "Next Grand Pursuit"}</span>
                 </div>
                 <div className="font-mono text-xs text-muted">
-                  RD.11 · 23.05 · 14:00 UTC · 5.30 KM
+                  RD.{nextRace?.round ?? "--"} · {raceDate(nextRace)} · 14:00 UTC
+                  {raceDistance(nextRace) && ` · ${raceDistance(nextRace)}`}
                 </div>
               </div>
-              <Countdown />
+              <Countdown targetIso={nextRace?.date.toISOString()} />
 
               <div className="mt-12 border-t border-line pt-6">
                 <div className="font-mono text-[10px] tracking-[0.3em] text-muted mb-4">

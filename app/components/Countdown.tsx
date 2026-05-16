@@ -19,15 +19,21 @@ function diff(t: Date) {
   return { d, h, m, s };
 }
 
-export function Countdown({ compact = false }: { compact?: boolean }) {
+export function Countdown({
+  compact = false,
+  targetIso,
+}: {
+  compact?: boolean;
+  targetIso?: string;
+}) {
   const [t, setT] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
 
   useEffect(() => {
-    const target = getTarget();
+    const target = targetIso ? new Date(targetIso) : getTarget();
     setT(diff(target));
     const id = window.setInterval(() => setT(diff(target)), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [targetIso]);
 
   const pad = (n: number) => n.toString().padStart(2, "0");
 
