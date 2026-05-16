@@ -8,10 +8,13 @@ const APP_STORE_URL =
 export const revalidate = 300;
 
 export default async function Home() {
-  const { next, total } = await getNextRace().catch(() => ({
-    next: null,
-    total: 24,
-  }));
+  const { next, total } = await getNextRace().catch((e) => {
+    console.error("[home] getNextRace failed:", e?.code, e?.message, {
+      hasInline: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+      hasAdc: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    });
+    return { next: null, total: 24 };
+  });
 
   return (
     <>
